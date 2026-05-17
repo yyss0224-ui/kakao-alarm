@@ -1,0 +1,25 @@
+name: 카카오톡 매일 아침 알림
+
+on:
+  schedule:
+    - cron: '30 23 * * *'
+  workflow_dispatch:
+
+jobs:
+  send-kakao-message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 카카오톡 전송
+        run: |
+          if [ -f "todo.txt" ] && [ -s "todo.txt" ]; then
+            TODO=$(cat todo.txt)
+            MESSAGE="📋 오늘의 할일 목록\n\n${TODO}\n\n좋은 하루 되세요! 💪"
+          else
+            MESSAGE="📋 오늘의 할일 목록\n\n오늘 할일이 없습니다. 좋은 하루 되세요! ☀️"
+          fi
+          curl -X POST https://kapi.kakao.com/v2/api/talk/memo/default/send \
+            -H "Authorization: Bearer ${{ secrets.KAKAO_ACCESS_TOKEN }}" \
+            --data-urlencode "template_object={\"object_type\":\"text\",\"text\":\"${MESSAGE}\",\"link\":{\"web_url\":\"https://kakao.com\"}}"
